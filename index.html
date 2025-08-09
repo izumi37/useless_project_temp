@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mwoo</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fff;
+            overflow: hidden;
+        }
+
+        .page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #homepage-content {
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 90px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: 'Product Sans', Arial, sans-serif;
+        }
+
+        .search-bar {
+            text-align: center;
+        }
+
+        #search-input {
+            width: 500px;
+            max-width: 90vw;
+            padding: 10px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        #search-input:hover, #search-input:focus {
+            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+            border-color: rgba(223,225,229,0);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #game-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #whac-a-mole {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .hole {
+            width: 100px;
+            height: 100px;
+            background-color: #9DBF9E; /* Grassy green color */
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border: 5px solid #708670;
+        }
+
+        /***** START OF CSS MOLE *****/
+        /* The mole is now created with pure CSS! */
+        /* This guarantees it will always appear. */
+        .mole {
+            width: 70px;
+            height: 60px;
+            background-color: #5C4033; /* Brown color */
+            border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%;
+            position: absolute;
+            bottom: -100px; /* Start hidden deep down */
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 0.25s ease-out;
+        }
+        
+        /* This is the class that makes the mole pop up */
+        .hole.up .mole {
+            bottom: 20px;
+        }
+
+        /* Eyes for the mole */
+        .mole::before, .mole::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: black;
+            border-radius: 50%;
+            top: 15px;
+        }
+        .mole::before { left: 18px; }
+        .mole::after { right: 18px; }
+
+        /* Nose for the mole */
+        .mole::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 6px;
+            background-color: #FFC0CB; /* Pink nose */
+            border-radius: 40%;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        /***** END OF CSS MOLE *****/
+
+
+        #oops-page {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #oops-page.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .oops-message {
+            font-size: 120px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            color: #DB4437;
+        }
+        .oops-image {
+            max-width: 80%;
+            max-height: 60vh;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .logo { font-size: 60px; }
+            #whac-a-mole { grid-template-columns: repeat(2, 100px); }
+            .oops-message { font-size: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="homepage" class="page">
+        <div id="homepage-content">
+            <div class="logo">
+                <span style="color: #4285F4;">m</span><span style="color: #DB4437;">w</span><span style="color: #F4B400;">o</span><span style="color: #0F9D58;">o</span>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Give it a try...">
+            </div>
+        </div>
+        <div id="game-container" class="hidden">
+            <h2>Catch the Mole!</h2>
+            <div id="whac-a-mole"></div>
+            <p>Score: <span id="score">0</span> / 5</p>
+        </div>
+    </div>
+
+    <div id="oops-page" class="page">
+        <h1 class="oops-message">Oops!</h1>
+        <img src="/Screenshot 2025-08-09 135028.png" alt="Funny oops image" width="200" class="oops-image">
+    </div>
+
+    <audio id="search-audio" src="search-sound.mp3" preload="auto"></audio>
+    <audio id="background-song" src="background-song.mp3" loop preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('search-input');
+            const searchAudio = document.getElementById('search-audio');
+            const backgroundSong = document.getElementById('background-song');
+            const homepage = document.getElementById('homepage');
+            const homepageContent = document.getElementById('homepage-content');
+            const gameContainer = document.getElementById('game-container');
+            const gameGrid = document.getElementById('whac-a-mole');
+            const scoreDisplay = document.getElementById('score');
+            const oopsPage = document.getElementById('oops-page');
+
+            let score = 0;
+            let gameActive = false;
+            let moleTimeout;
+            const WINNING_SCORE = 5;
+            const NUMBER_OF_HOLES = 6;
+
+            for (let i = 0; i < NUMBER_OF_HOLES; i++) {
+                const hole = document.createElement('div');
+                hole.classList.add('hole');
+                const mole = document.createElement('div');
+                mole.classList.add('mole');
+                hole.appendChild(mole);
+                gameGrid.appendChild(hole);
+
+                hole.addEventListener('click', () => {
+                    if (gameActive && hole.classList.contains('up')) {
+                        score++;
+                        scoreDisplay.textContent = score;
+                        hole.classList.remove('up');
+                        clearTimeout(moleTimeout);
+                        
+                        if (score >= WINNING_SCORE) {
+                            endGame();
+                        } else {
+                            showRandomMole();
+                        }
+                    }
+                });
+            }
+            const allHoles = document.querySelectorAll('.hole');
+
+            searchInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter' && searchInput.value.trim() !== '') {
+                    event.preventDefault();
+                    searchAudio.play().catch(e => console.error("Audio play failed:", e));
+                    homepageContent.classList.add('hidden');
+                    gameContainer.classList.remove('hidden');
+                    startGame();
+                }
+            });
+
+            function startGame() {
+                if (gameActive) return;
+                gameActive = true;
+                score = 0;
+                scoreDisplay.textContent = score;
+                showRandomMole();
+            }
+
+            function showRandomMole() {
+                if (!gameActive) return;
+                allHoles.forEach(hole => hole.classList.remove('up'));
+                const randomHole = allHoles[Math.floor(Math.random() * allHoles.length)];
+                randomHole.classList.add('up');
+                const randomTime = Math.random() * 800 + 400;
+                moleTimeout = setTimeout(() => {
+                    if (gameActive) {
+                        showRandomMole();
+                    }
+                }, randomTime);
+            }
+
+            function endGame() {
+                gameActive = false;
+                clearTimeout(moleTimeout);
+                homepage.style.opacity = '0';
+                oopsPage.classList.add('visible');
+                backgroundSong.play().catch(e => console.error("Audio play failed:", e));
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google</title>
+    <style>
+        /* --- General Body Styles --- */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Main Container --- */
+        #main-container {
+            text-align: center;
+            width: 100%;
+            padding: 20px;
+        }
+
+        /* --- Google Logo --- */
+        #google-logo {
+            width: 272px;
+            height: 92px;
+            margin: 0 auto;
+            background: url('https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png') no-repeat;
+            background-size: contain;
+        }
+
+        /* --- Search Area --- */
+        .search-area {
+            margin-top: 30px;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 580px;
+            height: 46px;
+            border-radius: 24px;
+            border: 1px solid #dfe1e5;
+            padding: 0 45px;
+            font-size: 16px;
+            outline: none;
+            box-shadow: 0 1px 6px rgba(32,33,36,0.1);
+        }
+        .search-bar:hover, .search-bar:focus {
+            box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+            border-color: rgba(223,225,229,0);
+        }
+
+        /* --- Search Buttons --- */
+        .search-buttons {
+            margin-top: 28px;
+        }
+
+        .search-buttons button {
+            background-color: #f8f9fa;
+            border: 1px solid #f8f9fa;
+            border-radius: 4px;
+            color: #3c4043;
+            font-family: arial,sans-serif;
+            font-size: 14px;
+            margin: 11px 4px;
+            padding: 0 16px;
+            line-height: 27px;
+            height: 36px;
+            min-width: 54px;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .search-buttons button:hover {
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            background-color: #f8f9fa;
+            border: 1px solid #dadce0;
+            color: #202124;
+        }
+
+        /* --- Error Screen --- */
+        #error-screen {
+            display: none; /* Hidden by default */
+            text-align: center;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #error-image {
+            max-width: 80%;
+            max-height: 40vh;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #error-message {
+            font-size: 2em;
+            color: #d93025; /* Google's red error color */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- This is the main interface that looks like Google -->
+    <div id="main-container">
+        <div id="google-logo"></div>
+        <div class="search-area">
+            <input type="text" id="search-input" class="search-bar" title="Search">
+        </div>
+        <div class="search-buttons">
+            <button>Google Search</button>
+            <button>I'm Feeling Lucky</button>
+        </div>
+    </div>
+
+    <!-- This is the hidden error screen that appears on typing -->
+    <div id="error-screen">
+        <!-- 
+            ===========================================================
+            ▼▼▼ PASTE YOUR IMAGE URL HERE ▼▼▼
+            Replace the placeholder below with the direct URL to your image.
+            Example: <img id="error-image" src="https://i.imgur.com/aBcDeFg.jpg" alt="Error">
+            ===========================================================
+        -->
+        <img id="error-image" src="PASTE_YOUR_IMAGE_URL_HERE" alt="Error Image">
+        <h1 id="error-message">An Error Has Occurred</h1>
+    </div>
+
+    <!-- 
+        ===========================================================
+        ▼▼▼ PASTE YOUR SONG URL HERE ▼▼▼
+        Replace the placeholder below with the direct URL to your song file (e.g., .mp3).
+        Example: <audio id="error-song" src="https://example.com/mysong.mp3"></audio>
+        ===========================================================
+    -->
+    <audio id="error-song" src="PASTE_YOUR_SONG_URL_HERE"></audio>
+
+
+    <script>
+        // Get references to all the elements we need to manipulate
+        const searchInput = document.getElementById('search-input');
+        const mainContainer = document.getElementById('main-container');
+        const errorScreen = document.getElementById('error-screen');
+        const errorSong = document.getElementById('error-song');
+
+        // This is the function that triggers the error
+        function triggerError() {
+            // Hide the Google interface
+            mainContainer.style.display = 'none';
+
+            // Show the error screen
+            errorScreen.style.display = 'block';
+
+            // Play the song
+            // We set the volume to a reasonable level
+            errorSong.volume = 0.5;
+            errorSong.play().catch(error => {
+                // Autoplay can sometimes be blocked by the browser. 
+                // This message in the console helps debug if the song doesn't play.
+                console.log("Audio playback failed:", error);
+            });
+
+            // We only need this to happen once, so we remove the event listener
+            // to prevent the function from running again.
+            searchInput.removeEventListener('input', triggerError);
+        }
+
+        // Add an event listener to the search bar.
+        // The 'input' event fires as soon as the user types anything.
+        searchInput.addEventListener('input', triggerError);
+    </script>
+
+</body>
+</html>
