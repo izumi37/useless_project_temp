@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Text Reverser — Demo</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{margin:0;padding:24px;background:#f6f8fb;color:#0b1220}
+    .card{max-width:900px;margin:0 auto;background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 24px rgba(12,20,40,0.08)}
+    textarea{width:100%;min-height:120px;padding:12px;border-radius:8px;border:1px solid #e2e8f0;font-size:15px;resize:vertical}
+    .row{display:flex;gap:12px;align-items:center}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button{background:#2563eb;color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    button.secondary{background:#64748b}
+    .output{white-space:pre-wrap;background:#0f1724;color:#e6eef8;padding:12px;border-radius:8px;min-height:80px}
+    label{font-size:14px}
+    .small{font-size:13px;color:#475569}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Text Reverser</h1>
+    <p class="small">Type or paste text below — choose how you'd like it reversed, then click <strong>Reverse</strong> (or toggle Live).</p>
+
+    <textarea id="inputText" placeholder="Type something to reverse...">Hello, world!</textarea>
+
+    <div style="margin-top:12px" class="row">
+      <div class="controls">
+        <label><input type="radio" name="mode" value="chars" checked> Reverse characters</label>
+        <label><input type="radio" name="mode" value="words"> Reverse words (each word reversed)</label>
+        <label><input type="radio" name="mode" value="wordOrder"> Reverse word order (words kept intact)</label>
+        <label style="margin-left:8px"><input type="checkbox" id="liveToggle"> Live</label>
+      </div>
+    </div>
+
+    <div style="margin-top:12px" class="row">
+      <button id="reverseBtn">Reverse</button>
+      <button id="clearBtn" class="secondary">Clear</button>
+      <button id="copyBtn" class="secondary">Copy output</button>
+      <div style="margin-left:auto" class="small">Output length: <span id="outLen">0</span> chars</div>
+    </div>
+
+    <h3 style="margin-top:16px">Output</h3>
+    <div id="output" class="output"></div>
+  </div>
+
+  <script>
+    const input = document.getElementById('inputText');
+    const output = document.getElementById('output');
+    const reverseBtn = document.getElementById('reverseBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const outLen = document.getElementById('outLen');
+    const liveToggle = document.getElementById('liveToggle');
+
+    function getMode(){
+      return document.querySelector('input[name="mode"]:checked').value;
+    }
+
+    function reverseChars(s){
+      // Works for most basic text. For full Unicode grapheme-cluster correctness, a specialized library is needed.
+      return s.split('').reverse().join('');
+    }
+
+    function reverseWordsCharacters(s){
+      return s.split(/(\s+)/).map(part => {
+        // keep whitespace tokens as-is
+        if (/^\s+$/.test(part)) return part;
+        return part.split('').reverse().join('');
+      }).join('');
+    }
+
+    function reverseWordOrder(s){
+      // Split on whitespace but preserve original whitespace between words when rejoining
+      const words = s.trim().split(/\s+/);
+      if(words.length===1 && words[0]==='') return '';
+      return words.reverse().join(' ');
+    }
+
+    function updateOutput(){
+      const text = input.value || '';
+      let result = '';
+      const mode = getMode();
+      if(mode === 'chars') result = reverseChars(text);
+      else if(mode === 'words') result = reverseWordsCharacters(text);
+      else if(mode === 'wordOrder') result = reverseWordOrder(text);
+      output.textContent = result;
+      outLen.textContent = result.length;
+    }
+
+    reverseBtn.addEventListener('click', updateOutput);
+    clearBtn.addEventListener('click', ()=>{ input.value=''; output.textContent=''; outLen.textContent='0'; });
+    copyBtn.addEventListener('click', ()=>{
+      const text = output.textContent;
+      if(!text) return alert('Nothing to copy');
+      navigator.clipboard.writeText(text).then(()=>{ alert('Copied to clipboard'); }).catch(()=>{ alert('Copy failed — your browser may block clipboard access'); });
+    });
+
+    input.addEventListener('input', ()=>{ if(liveToggle.checked) updateOutput(); });
+    document.querySelectorAll('input[name="mode"]').forEach(r=>r.addEventListener('change', ()=>{ if(liveToggle.checked) updateOutput(); }));
+
+    // initial output
+    updateOutput();
+  </script>
+</body>
+</html>

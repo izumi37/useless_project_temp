@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Mood Detector for Potatoes 🥔</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root {
+            --primary-color: #ffcc70;
+            --secondary-color: #fff9e6;
+            --text-color: #5d4037;
+            --border-radius: 15px;
+            --box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.8s ease;
+            text-align: center;
+        }
+
+        .container {
+            background-color: var(--secondary-color);
+            padding: 30px 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+            width: 100%;
+            /* --- Style Update --- */
+            /* Use Flexbox to center all items vertically and horizontally */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+
+        .upload-area {
+            border: 3px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 80%; /* Give it a consistent width */
+        }
+
+        .upload-area:hover {
+            background-color: #ffebb3;
+        }
+
+        #potato-upload {
+            display: none;
+        }
+
+        .upload-text {
+            font-weight: 600;
+        }
+
+        #detect-button {
+            background-color: #8b4513;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: none; /* Hidden initially */
+        }
+
+        #detect-button:hover {
+            background-color: #a0522d;
+            transform: scale(1.05);
+        }
+
+        #result {
+            margin-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        #result.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #potato-image {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        #mood-text {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        #share-button {
+            background-color: #25D366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        #share-button:hover {
+            background-color: #128C7E;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧠 Mood Detector for Potatoes 🥔</h1>
+        <p>Our highly advanced, totally real AI will analyze your potato's deepest emotions. Upload a photo to reveal its true feelings!</p>
+
+        <label for="potato-upload" class="upload-area" id="upload-label">
+            <span class="upload-text">Click here to upload a potato photo</span>
+        </label>
+        <input type="file" id="potato-upload" accept="image/*">
+
+        <button id="detect-button">Detect Mood</button>
+
+        <div id="result">
+            <img id="potato-image" src="" alt="Your Potato">
+            <h2 id="mood-text"></h2>
+            <a id="share-button" href="#" target="_blank" style="display: none;">Share on Social Media 😂</a>
+        </div>
+    </div>
+
+    <script>
+        const moods = [
+            { mood: "Happy Potato 😊", color: "#FFD700" },
+            { mood: "Anxious Tuber 😰", color: "#B0C4DE" },
+            { mood: "Existential Crisis 🥴", color: "#696969" },
+            { mood: "Ready to be Mashed 😩", color: "#D2B48C" },
+            { mood: "Feeling Chippy 😄", color: "#FFA500" },
+            { mood: "A Bit Salty 🧂", color: "#F5F5F5" },
+            { mood: "Spudtacularly Zen 🙏", color: "#98FB98" },
+            { mood: "Eyes on the Prize 👀", color: "#ADD8E6" }
+        ];
+
+        const potatoUpload = document.getElementById('potato-upload');
+        const uploadLabel = document.getElementById('upload-label');
+        const detectButton = document.getElementById('detect-button');
+        const resultDiv = document.getElementById('result');
+        const potatoImage = document.getElementById('potato-image');
+        const moodText = document.getElementById('mood-text');
+        const shareButton = document.getElementById('share-button');
+
+        potatoUpload.addEventListener('change', (event) => {
+            if (event.target.files && event.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    potatoImage.src = e.target.result;
+                    uploadLabel.querySelector('.upload-text').textContent = "Image selected! Ready to detect.";
+                    detectButton.style.display = 'block';
+                    resultDiv.classList.remove('visible'); // Hide previous result
+                };
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        });
+
+        detectButton.addEventListener('click', () => {
+            if (!potatoImage.src || potatoImage.src === window.location.href) {
+                alert("Please upload a potato picture first!");
+                return;
+            }
+
+            // Show a "thinking" message
+            moodText.textContent = "Analyzing profundity...";
+            resultDiv.classList.add('visible');
+            
+            // Simulate AI thinking time
+            setTimeout(() => {
+                const randomMood = moods[Math.floor(Math.random() * moods.length)];
+                
+                // Update mood text and background color
+                moodText.textContent = randomMood.mood;
+                document.body.style.backgroundColor = randomMood.color;
+                
+                // Prepare the share button
+                const shareText = encodeURIComponent(`My potato is feeling like a "${randomMood.mood}" according to the Mood Detector for Potatoes! 😂 #PotatoMood`);
+                shareButton.href = `https://twitter.com/intent/tweet?text=${shareText}`;
+                shareButton.style.display = 'inline-block';
+
+            }, 1500); // 1.5 second delay
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toothbrush Usage Simulator 🪥</title>
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff; /* Light blue background */
+            overflow: hidden; /* Hide scrollbars */
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ and Edge */
+            user-select: none; /* Standard */
+        }
+
+        /* --- Main Container --- */
+        #game-container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d0e0ff;
+        }
+
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        /* --- Tooth Styling --- */
+        #tooth-container {
+            position: relative;
+            width: 250px;
+            height: 300px;
+            margin: 20px auto;
+            cursor: none; /* Hide the default cursor over the tooth */
+        }
+
+        #tooth {
+            width: 100%;
+            height: 100%;
+            background: #fdfdfd; /* Off-white for the tooth */
+            border-radius: 48% 48% 35% 35% / 55% 55% 45% 45%;
+            position: relative;
+            box-shadow: inset 0 -15px 20px rgba(0,0,0,0.08);
+        }
+
+        /* --- Dirt/Plaque Styling --- */
+        .dirt {
+            position: absolute;
+            background-color: #e8d9a7; /* Plaque color */
+            border-radius: 50%;
+            opacity: 0.7;
+            pointer-events: none; /* Makes sure the dirt doesn't interfere with mouse events */
+        }
+
+        /* Pre-defined positions for the "dirt" */
+        .dirt.d1 { top: 20%; left: 30%; width: 40px; height: 30px; transform: rotate(15deg); }
+        .dirt.d2 { top: 40%; left: 60%; width: 50px; height: 35px; transform: rotate(-25deg); }
+        .dirt.d3 { top: 65%; left: 25%; width: 35px; height: 25px; transform: rotate(10deg); }
+        .dirt.d4 { top: 75%; left: 50%; width: 60px; height: 20px; transform: rotate(-5deg); }
+
+
+        /* --- Toothbrush Cursor Styling --- */
+        #toothbrush {
+            width: 120px;
+            height: 120px;
+            position: absolute;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🪥</text></svg>');
+            background-repeat: no-repeat;
+            background-size: contain;
+            pointer-events: none; /* The toothbrush icon doesn't block clicks */
+            transform: translate(-30%, -80%) rotate(-10deg); /* Position relative to cursor */
+            transition: transform 0.1s ease-out; /* Smooth movement */
+            z-index: 100;
+            display: none; /* Hidden by default */
+        }
+
+        #tooth-container:hover #toothbrush {
+            display: block; /* Show when hovering the container */
+        }
+
+        /* --- Status Message --- */
+        #status-message {
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            color: #d9534f; /* A reddish color for the "dirty" message */
+            padding: 10px 20px;
+            background-color: #fcf8e3;
+            border: 1px solid #fbeed5;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>Toothbrush Usage Simulator</h1>
+        <div id="tooth-container">
+            <div id="toothbrush"></div>
+            <div id="tooth">
+                <!-- These divs represent the "dirt" on the tooth -->
+                <div class="dirt d1"></div>
+                <div class="dirt d2"></div>
+                <div class="dirt d3"></div>
+                <div class="dirt d4"></div>
+            </div>
+        </div>
+        <p id="status-message">Still dirty.</p>
+    </div>
+
+    <script>
+        const toothContainer = document.getElementById('tooth-container');
+        const toothbrush = document.getElementById('toothbrush');
+        const statusMessage = document.getElementById('status-message');
+
+        // Flag to check if the mouse button is pressed
+        let isBrushing = false;
+
+        // Make the toothbrush icon follow the mouse cursor
+        toothContainer.addEventListener('mousemove', (e) => {
+            // Get the position of the container relative to the viewport
+            const rect = toothContainer.getBoundingClientRect();
+
+            // Calculate the mouse position relative to the container
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Update the position of the toothbrush icon
+            toothbrush.style.left = x + 'px';
+            toothbrush.style.top = y + 'px';
+        });
+
+        // Add a "wiggling" effect to the toothbrush when brushing
+        const startBrushing = () => {
+            isBrushing = true;
+            // Add a class or style to indicate brushing, e.g., wiggling
+            toothbrush.style.transform += ' rotate(5deg)';
+        };
+
+        const stopBrushing = () => {
+            isBrushing = false;
+            // Reset the style when not brushing
+            toothbrush.style.transform = toothbrush.style.transform.replace(' rotate(5deg)', '');
+        };
+
+        // Event listeners for mouse press and release
+        toothContainer.addEventListener('mousedown', startBrushing);
+        toothContainer.addEventListener('mouseup', stopBrushing);
+        // Also stop brushing if the mouse leaves the tooth area
+        toothContainer.addEventListener('mouseleave', stopBrushing);
+
+        // This is the core logic: no matter what, the message never changes.
+        // We can add a function that runs on an interval to "check" the status,
+        // but it will always return the same result to reinforce the joke.
+        setInterval(() => {
+            if (isBrushing) {
+                // You could add a subtle animation here, but the text remains the same.
+                statusMessage.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    statusMessage.style.transform = 'scale(1)';
+                }, 150);
+            }
+            // The text content is never updated to "clean".
+            statusMessage.textContent = "Still dirty.";
+        }, 300);
+
+    </script>
+
+</body>
+</html>
